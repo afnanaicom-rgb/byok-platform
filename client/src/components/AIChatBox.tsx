@@ -104,7 +104,7 @@ export function isToolComplete(state: ToolInvocationState): boolean {
  */
 export interface ToolPartRendererProps {
   /** The tool part from the message - type is `tool-${toolName}` */
-  part: UIMessagePart & { type: `tool-${string}` };
+  part: UIMessagePart<any, any> & { type: `tool-${string}` };
   /** Extracted tool name for convenience */
   toolName: string;
   /** Current state of the tool invocation */
@@ -117,7 +117,7 @@ export interface ToolPartRendererProps {
   errorText?: string;
 }
 
-export type ToolPartRenderer = (props: ToolPartRendererProps) => ReactNode;
+// renderToolPart is defined in AIChatBoxProps interface below
 
 export interface AIChatBoxProps {
   /** API endpoint for chat (default: "/api/chat") */
@@ -145,7 +145,7 @@ export interface AIChatBoxProps {
    * Custom renderer for tool parts.
    * Return null to use the default JSON renderer.
    */
-  renderToolPart?: ToolPartRenderer;
+  renderToolPart?: (props: ToolPartRendererProps) => ReactNode | null;
 
   /** Placeholder text for the input field */
   placeholder?: string;
@@ -205,7 +205,7 @@ function MessageBubble({
   isStreaming,
 }: {
   message: UIMessage;
-  renderToolPart: ToolPartRenderer;
+  renderToolPart: (props: ToolPartRendererProps) => ReactNode | null;
   isStreaming: boolean;
 }) {
   const isUser = message.role === "user";
@@ -256,7 +256,7 @@ function MessageBubble({
           if (part.type.startsWith("tool-")) {
             const toolName = part.type.replace("tool-", "");
             // Cast to access tool-specific properties
-            const toolPart = part as UIMessagePart & {
+            const toolPart = part as UIMessagePart<any, any> & {
               type: `tool-${string}`;
               toolCallId: string;
               state: ToolInvocationState;
