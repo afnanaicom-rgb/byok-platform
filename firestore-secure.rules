@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===== DEFAULT DENY ALL =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===== USER DOCUMENTS =====
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
+
+      // ===== API KEYS - COMPLETELY PROTECTED =====
+      match /apiKeys/{apiKeyId} {
+        // لا أحد يستطيع القراءة المباشرة
+        allow read: if false;
+        
+        // فقط المالك يستطيع الكتابة (إضافة مفتاح جديد)
+        allow create: if request.auth.uid == userId;
+        
+        // لا يمكن تعديل أو حذف
+        allow update, delete: if false;
+      }
+
+      // ===== REQUESTS - للطلبات المشفرة =====
+      match /requests/{requestId} {
+        // فقط المالك يستطيع الكتابة (إرسال طلب)
+        allow create: if request.auth.uid == userId;
+        
+        // لا يمكن قراءة أو تعديل
+        allow read, update, delete: if false;
+      }
+
+      // ===== RESPONSES - للردود المشفرة =====
+      match /responses/{responseId} {
+        // فقط المالك يستطيع القراءة (استقبال رد)
+        allow read: if request.auth.uid == userId;
+        
+        // لا يمكن الكتابة أو التعديل مباشرة
+        allow create, update, delete: if false;
+      }
+    }
+
+    // ===== ADMIN COLLECTION - للعمليات الإدارية فقط =====
+    match /admin/{document=**} {
+      // لا أحد يستطيع الوصول
+      allow read, write: if false;
+    }
+  }
+}

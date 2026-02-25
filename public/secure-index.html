@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة BYOK الآمنة - Pollinations.ai</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg-light: #f9fafb;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* LOGIN PAGE */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .github-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--text-dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .github-btn:hover:not(:disabled) {
+            background: #000;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .github-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* APP CONTAINER */
+        .app-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            min-height: 100vh;
+            background: var(--bg-light);
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .user-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-details h3 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .user-details p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .api-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .api-status {
+            padding: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--danger);
+        }
+
+        .api-status.connected {
+            background: #dcfce7;
+            color: #166534;
+            border-left-color: var(--secondary);
+        }
+
+        .add-api-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-api-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-container {
+            background: var(--bg-white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .chat-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-white);
+            border-radius: 0 0 12px 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid var(--primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                height: auto;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🤖 BYOK Chat</h1>
+                <p>منصة محادثة آمنة مع Pollinations.ai</p>
+            </div>
+            <div id="loginAlert"></div>
+            <button class="github-btn" id="loginBtn" onclick="loginWithGitHub()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v 3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                تسجيل الدخول عبر GitHub
+            </button>
+        </div>
+    </div>
+
+    <!-- APP PAGE -->
+    <div id="appPage" class="app-container hidden">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-details">
+                        <h3 id="userName">المستخدم</h3>
+                        <p id="userEmail">user@example.com</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+            </div>
+
+            <div class="api-section">
+                <div class="section-title">🔑 API Key</div>
+                <div class="api-status" id="apiStatus">غير متصل</div>
+                <button class="add-api-btn" onclick="openApiModal()">+ إضافة API Key</button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>💬 محادثة آمنة</h2>
+                    <p id="chatStatus">جاهز للمحادثة</p>
+                </div>
+
+                <div class="messages-container" id="messagesContainer"></div>
+
+                <div class="chat-input-area">
+                    <div id="alertContainer"></div>
+                    <div class="input-group">
+                        <textarea 
+                            id="messageInput" 
+                            class="chat-input" 
+                            placeholder="اكتب رسالتك هنا..."
+                            rows="1"
+                            onkeydown="handleKeyPress(event)"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                            <span>إرسال</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API KEY MODAL -->
+    <div id="apiKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 مفتاح Pollinations.ai</h2>
+                <p>أدخل مفتاح API الخاص بك (سيتم تشفيره بشكل آمن)</p>
+            </div>
+
+            <div id="modalAlert"></div>
+
+            <div class="form-group">
+                <label for="apiKeyInput">مفتاح API:</label>
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="أدخل مفتاح API الخاص بك"
+                />
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeApiModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveApiKey()">حفظ بشكل آمن</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v11 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GithubAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        // ===== FIREBASE CONFIG =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3kmW2u1a_kh0L2nIODG7LzmoCE396_UQ",
+            authDomain: "afnan-7cce4.firebaseapp.com",
+            projectId: "afnan-7cce4",
+            storageBucket: "afnan-7cce4.firebasestorage.app",
+            messagingSenderId: "338949639173",
+            appId: "1:338949639173:web:3d1223ed19e927550ae06c",
+            measurementId: "G-LKQG6E3HPL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ===== STATE =====
+        let currentUser = null;
+        let messages = [];
+        let encryptionKey = null;
+
+        // ===== ENCRYPTION FUNCTIONS =====
+        window.generateEncryptionKey = function() {
+            return CryptoJS.lib.WordArray.random(32).toString();
+        };
+
+        window.encryptData = function(data, key) {
+            return CryptoJS.AES.encrypt(data, key).toString();
+        };
+
+        window.decryptData = function(encryptedData, key) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, key);
+                return bytes.toString(CryptoJS.enc.Utf8);
+            } catch (error) {
+                console.error('فشل فك التشفير:', error);
+                return null;
+            }
+        };
+
+        // ===== AUTHENTICATION =====
+        window.loginWithGitHub = async function() {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
+
+            try {
+                const provider = new GithubAuthProvider();
+                provider.addScope('user:email');
+                
+                const result = await signInWithPopup(auth, provider);
+                currentUser = result.user;
+                console.log('✅ تم تسجيل الدخول:', currentUser.displayName);
+                
+                showAppPage();
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                showLoginAlert('فشل تسجيل الدخول: ' + error.message, 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'تسجيل الدخول عبر GitHub';
+            }
+        };
+
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                currentUser = null;
+                messages = [];
+                showLoginPage();
+            } catch (error) {
+                console.error('خطأ:', error);
+            }
+        };
+
+        // ===== PAGE NAVIGATION =====
+        window.showLoginPage = function() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('appPage').classList.add('hidden');
+        };
+
+        window.showAppPage = function() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            updateUserInfo();
+            loadEncryptionKey();
+        };
+
+        // ===== USER INFO =====
+        window.updateUserInfo = function() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.displayName || 'مستخدم';
+                document.getElementById('userEmail').textContent = currentUser.email || '';
+                const initial = (currentUser.displayName || 'U').charAt(0).toUpperCase();
+                document.getElementById('userAvatar').textContent = initial;
+            }
+        };
+
+        // ===== ENCRYPTION KEY MANAGEMENT =====
+        window.loadEncryptionKey = function() {
+            const stored = localStorage.getItem(`encryption_key_${currentUser.uid}`);
+            if (stored) {
+                encryptionKey = stored;
+                updateApiStatus(true);
+            } else {
+                encryptionKey = generateEncryptionKey();
+                localStorage.setItem(`encryption_key_${currentUser.uid}`, encryptionKey);
+                updateApiStatus(false);
+            }
+        };
+
+        window.updateApiStatus = function(connected) {
+            const apiStatus = document.getElementById('apiStatus');
+            if (connected) {
+                apiStatus.textContent = '✅ متصل';
+                apiStatus.className = 'api-status connected';
+            } else {
+                apiStatus.textContent = '❌ غير متصل';
+                apiStatus.className = 'api-status';
+            }
+        };
+
+        // ===== API KEY MANAGEMENT =====
+        window.openApiModal = function() {
+            document.getElementById('apiKeyModal').classList.add('active');
+            document.getElementById('apiKeyInput').focus();
+        };
+
+        window.closeApiModal = function() {
+            document.getElementById('apiKeyModal').classList.remove('active');
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('modalAlert').innerHTML = '';
+        };
+
+        window.saveApiKey = async function() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                showModalAlert('الرجاء إدخال مفتاح API', 'error');
+                return;
+            }
+
+            try {
+                showModalAlert('جاري التشفير والحفظ...', 'info');
+
+                // تشفير المفتاح في Frontend
+                const encryptedKey = encryptData(apiKey, encryptionKey);
+
+                // حفظ المفتاح المشفر في Firestore
+                const apiKeysRef = collection(db, 'users', currentUser.uid, 'apiKeys');
+                await addDoc(apiKeysRef, {
+                    encryptedKey: encryptedKey,
+                    createdAt: new Date(),
+                    status: 'active'
+                });
+
+                showModalAlert('تم حفظ المفتاح بشكل آمن ✅', 'success');
+                setTimeout(() => {
+                    closeApiModal();
+                    updateApiStatus(true);
+                }, 1500);
+            } catch (error) {
+                console.error('خطأ:', error);
+                showModalAlert('فشل في حفظ المفتاح: ' + error.message, 'error');
+            }
+        };
+
+        // ===== MESSAGES =====
+        window.sendMessage = async function() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+            if (!encryptionKey) {
+                showAlert('الرجاء إضافة مفتاح API أولاً', 'error');
+                return;
+            }
+
+            const userMessage = {
+                role: 'user',
+                content: message,
+                timestamp: new Date()
+            };
+
+            messages.push(userMessage);
+            displayMessage(userMessage);
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                // إرسال الطلب المشفر إلى Firestore
+                const requestsRef = collection(db, 'users', currentUser.uid, 'requests');
+                const encryptedMessage = encryptData(message, encryptionKey);
+
+                const docRef = await addDoc(requestsRef, {
+                    encryptedMessage: encryptedMessage,
+                    status: 'pending',
+                    createdAt: new Date(),
+                    type: 'chat'
+                });
+
+                // الاستماع للرد
+                const responseRef = doc(db, 'users', currentUser.uid, 'responses', docRef.id);
+                
+                const unsubscribe = onSnapshot(responseRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.data();
+                        if (data.status === 'completed') {
+                            // فك تشفير الرد
+                            const decryptedResponse = decryptData(data.encryptedResponse, encryptionKey);
+                            
+                            if (decryptedResponse) {
+                                const aiMessage = {
+                                    role: 'assistant',
+                                    content: decryptedResponse,
+                                    timestamp: new Date()
+                                };
+                                messages.push(aiMessage);
+                                displayMessage(aiMessage);
+                            }
+
+                            unsubscribe();
+                            document.getElementById('sendBtn').disabled = false;
+                        } else if (data.status === 'error') {
+                            showAlert('خطأ: ' + data.error, 'error');
+                            unsubscribe();
+                            document.getElementById('sendBtn').disabled = false;
+                        }
+                    }
+                });
+
+                // انتظر 30 ثانية كحد أقصى
+                setTimeout(() => {
+                    unsubscribe();
+                    document.getElementById('sendBtn').disabled = false;
+                }, 30000);
+
+            } catch (error) {
+                console.error('خطأ:', error);
+                showAlert('فشل في إرسال الرسالة: ' + error.message, 'error');
+                document.getElementById('sendBtn').disabled = false;
+            }
+        };
+
+        window.displayMessage = function(message) {
+            const container = document.getElementById('messagesContainer');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${message.role}`;
+            messageEl.innerHTML = `
+                <div>
+                    <div class="message-content">${escapeHtml(message.content)}</div>
+                </div>
+            `;
+            container.appendChild(messageEl);
+            container.scrollTop = container.scrollHeight;
+        };
+
+        // ===== UTILITIES =====
+        window.handleKeyPress = function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        };
+
+        window.escapeHtml = function(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+
+        window.showAlert = function(message, type = 'info') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 5000);
+        };
+
+        window.showLoginAlert = function(message, type = 'info') {
+            const container = document.getElementById('loginAlert');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        };
+
+        window.showModalAlert = function(message, type = 'info') {
+            const container = document.getElementById('modalAlert');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+
+            if (type === 'success') {
+                setTimeout(() => container.innerHTML = '', 3000);
+            }
+        };
+
+        // ===== AUTO RESIZE TEXTAREA =====
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // ===== INITIALIZE =====
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                showAppPage();
+            } else {
+                showLoginPage();
+            }
+        });
+    </script>
+</body>
+</html>
