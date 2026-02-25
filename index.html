@@ -650,7 +650,7 @@
                 const response = await fetch(corsProxy + 'https://api.pollinations.ai/models', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`
+                        'x-api-key': apiKey
                     }
                 });
 
@@ -739,7 +739,7 @@
                 const response = await fetch(corsProxy + 'https://api.pollinations.ai/chat', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${currentApiKey}`,
+                        'x-api-key': currentApiKey,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
